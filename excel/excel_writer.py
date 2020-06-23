@@ -1,7 +1,7 @@
 import xlwt
 from xlwt import XFStyle
 
-from define.sentences import StepSentences, ActionSentences, LocationSentences, ExceptSentences
+from define.constsentences import StepSentences, ActionSentences, LocationSentences, ExceptSentences
 from excel.case import Cell, TestCase, CaseName, CaseDescription, FrontCondition, StepDescription, ExceptResult, Note, \
     ActualResult, Column, EmptyCell
 

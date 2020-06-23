@@ -47,16 +47,6 @@ class BasicScanner(metaclass=abc.ABCMeta):
     def next(self, line: str) -> List[TokenStream]:
         pass
 
-
-class LineScanner(BasicScanner):
-
-    def __init__(self):
-        self._re = re.compile(r"(?P<expr>\w+?)<(?P<expr_v>.+?)>")
-        self._recursive_re = re.compile(r"(?P<expr>\w+?)<(?P<expr_v>.+)>")
-
-    def next(self, line: str) -> List[TokenStream]:
-        return [t for t in map(self.to_token, self._re.finditer(line))]
-
     def to_token(self, k: dict) -> TokenStream:
         key = k[KW_KEY]
         value = k[KW_VALUE]
@@ -64,6 +54,16 @@ class LineScanner(BasicScanner):
         if token == Token.INVALID:
             raise InvalidToken(f"{key}<{value}> invalid keyword: {key}")
         return TokenStream(token, key, value)
+
+
+class ExprScanner(BasicScanner):
+
+    def __init__(self):
+        self._re = re.compile(r"(?P<expr>\w+?)<(?P<expr_v>.+?)>")
+        self._recursive_re = re.compile(r"(?P<expr>\w+?)<(?P<expr_v>.+)>")
+
+    def next(self, line: str) -> List[TokenStream]:
+        return [t for t in map(self.to_token, self._re.finditer(line))]
 
     @staticmethod
     def kind(k) -> Token:

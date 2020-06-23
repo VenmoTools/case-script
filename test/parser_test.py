@@ -3,7 +3,7 @@ import unittest
 
 import ddt
 
-from lexer.parser import LineScanner, Token
+from lexer.parser import ExprScanner, Token
 
 matcher = re.compile(r"status::.+?", )
 
@@ -17,7 +17,7 @@ class MyTestCase(unittest.TestCase):
               "status_is<status::active>", "status_is<status::n_active>",
               "status_is<status::cust(启用)>")
     def test_status(self, line):
-        scanner = LineScanner()
+        scanner = ExprScanner()
         word = scanner.next(line)[0]
         self.assertEqual(Token.STATUS, word.token())
         self.assertNotEqual("", word.keyword())
@@ -27,7 +27,7 @@ class MyTestCase(unittest.TestCase):
     @ddt.data("when<无网环境>",
               "when<http://www.aaa.bbb/?aa=5&as=5>不可访问")
     def test_when(self, line):
-        scanner = LineScanner()
+        scanner = ExprScanner()
         word = scanner.next(line)[0]
         self.assertEqual(Token.STATUS, word.token())
         self.assertNotEqual("", word.keyword())
@@ -36,7 +36,7 @@ class MyTestCase(unittest.TestCase):
     @ddt.data("situation_is<无网环境>",
               "situation_is<http://www.aaa.bbb/?aa=5&as=5>不可访问")
     def test_situation(self, line):
-        scanner = LineScanner()
+        scanner = ExprScanner()
         word = scanner.next(line)[0]
         self.assertEqual(Token.STATUS, word.token())
         self.assertNotEqual("", word.keyword())
@@ -53,7 +53,7 @@ class MyTestCase(unittest.TestCase):
     )
     @ddt.unpack
     def test_multi_arg(self, line, value):
-        scanner = LineScanner()
+        scanner = ExprScanner()
         word = scanner.next(line)[0]
         self.assertEqual(Token.CONDITION, word.token())
         self.assertNotEqual("", word.keyword())
@@ -70,7 +70,7 @@ class MyTestCase(unittest.TestCase):
     )
     @ddt.unpack
     def test_multi_token(self, line, value1, value2):
-        scanner = LineScanner()
+        scanner = ExprScanner()
         words = scanner.next(line)
         word = words[0]
         self.assertIn(word.token(), [Token.CONDITION, Token.EXCEPT_RESULT, Token.ACTION])
@@ -88,7 +88,7 @@ class MyTestCase(unittest.TestCase):
     @ddt.unpack
     @unittest.skip
     def test_recursive_token(self, line, value1, value2):
-        scanner = LineScanner()
+        scanner = ExprScanner()
         words = scanner.next(line)
         word = words[0]
         self.assertEqual(Token.ACTION, word.token())

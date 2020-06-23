@@ -2,7 +2,8 @@ import abc
 import re
 from typing import Tuple
 
-from define.sentences import StepSentences, ConditionSentences, DescriptionSentences, StatusSentences, LocationSentences
+from define.constsentences import StepSentences, ConditionSentences, DescriptionSentences, StatusSentences, \
+    LocationSentences
 from lexer.ast import AST, ASTNode
 from lexer.parser import Token
 
@@ -197,18 +198,14 @@ class FrontCondition(Cell, CaseSerializer):
         if status == 0b111:
             no = True if kw == "exists" else False
             content, item, number = self.args_parser(n.span())
-            return ConditionSentences.exists_in_somewhere_or_not(SentencesMaker.location(next(node)), number, item,
+            return ConditionSentences.exists_in_somewhere_or_not(SentencesMaker.make_location(next(node)), number, item,
                                                                  content,
                                                                  not_exists=no)
         if status == 0x1111:
             no = True if kw == "exists" else False
             content, item, number = self.args_parser(n.span())
-            locat = SentencesMaker.location(next(node))
+            locat = SentencesMaker.make_location(next(node))
             pass
-
-        # todo: arg split
-        ConditionSentences.content_is(node.token.span())
-        StepSentences(self._no).make()
         self._no += 1
 
     def serialize(self) -> str:
@@ -378,55 +375,44 @@ class EmptyCaseElement(Exception):
 
 
 class SentencesMaker:
-
     def __init__(self, no):
         self.case = TestCase(no)
 
     def make(self) -> str:
         pass
 
+    @staticmethod
+    def get_attr(o, a):
+        if hasattr(o, a):
+            return getattr(o, a)
+        raise TypeError(f"can not find attr `{a}`")
+
+    @staticmethod
+    def _make_location_attr(kw: str):
+        other = "somewhere"
+        if "parti" in kw:
+            other = "particular_somewhere"
+        return f"{kw}_{other}"
+
     @classmethod
-    def location(cls, node: ASTNode):
+    def make_condition(cls, node: ASTNode):
+        pass
+
+    @classmethod
+    def make_location(cls, node: ASTNode):
         kw = node.token.keyword()
-        if kw == "in":
-            return LocationSentences().in_somewhere(node.token.token())
-        elif kw == "parti_in":
-            return LocationSentences().in_particular_somewhere(*cls.args_parser(node.token.span()))
-        elif kw == "left":
-            return LocationSentences().left_somewhere(node.token.token())
-        elif kw == "parti_left":
-            return LocationSentences().left_particular_somewhere(*cls.args_parser(node.token.span()))
-        elif kw == "right":
-            return LocationSentences().right_somewhere(node.token.token())
-        elif kw == "parti_right":
-            return LocationSentences().right_particular_somewhere(*cls.args_parser(node.token.span()))
-        elif kw == "top":
-            return LocationSentences().above_somewhere(node.token.token())
-        elif kw == "parti_top":
-            return LocationSentences().above_particular_somewhere(*cls.args_parser(node.token.span()))
-        elif kw == "bottom":
-            return LocationSentences().bottom_somewhere(node.token.token())
-        elif kw == "parti_bottom":
-            return LocationSentences().bottom_particular_somewhere(*cls.args_parser(node.token.span()))
-        elif kw == "location":
-            if node.token.span() == "bottom_left":
-                return LocationSentences().bottom_left()
-            elif node.token.span() == "bottom_right":
-                return LocationSentences().bottom_right()
-            elif node.token.span() == "top_left":
-                return LocationSentences().top_left()
-            elif node.token.span() == "top_right":
-                return LocationSentences().top_right()
-            elif node.token.span() == "top":
-                return LocationSentences().top()
-            elif node.token.span() == "bottom":
-                return LocationSentences().bottom()
-            elif node.token.span() == "middle":
-                return LocationSentences().middle()
-            elif node.token.span() == "left":
-                return LocationSentences().left()
-            elif node.token.span() == "right":
-                return LocationSentences().right()
+        sentences = LocationSentences()
+        try:
+            attr = cls._make_location_attr(kw)
+            func = cls.get_attr(sentences, attr)
+            if "parti" in kw:
+                return func(*cls.args_parser(node.token.span()))
+            return func(node.token.token())
+        except KeyError:
+            if kw == "location":
+                return cls.get_attr(sentences, node.token.span())()
+            else:
+                raise SyntaxError(f"can not find keyword `{kw}`")
 
     @classmethod
     def args_parser(cls, line: str):
@@ -436,6 +422,8 @@ class SentencesMaker:
     @classmethod
     def const(cls, x):
         if "unit" in x:
+            if "cust" in x:
+                return re.findall(r"\(.+?\)", x)[0]
             return DescriptionSentences.__dict__[x.split("::")[1].upper()]
         if "status" in x:
             return StatusSentences.__dict__[x.split("::")[1].upper()]
@@ -445,3 +433,8 @@ class SentencesMaker:
             return x.split("::")[1]
 
         return x
+
+
+if __name__ == '__main__':
+    s = LocationSentences()
+    print(hasattr(s, "right"))

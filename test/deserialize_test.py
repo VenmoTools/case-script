@@ -1,13 +1,13 @@
 import unittest
 
 from excel.case import FrontCondition
-from lexer.parser import LineScanner
+from lexer.parser import ExprScanner
 
 
 class MyTestCase(unittest.TestCase):
 
     def test_something(self):
-        scanner = LineScanner()
+        scanner = ExprScanner()
         condition = FrontCondition()
 
         stream = scanner.next("value_is<用户名, 15>")

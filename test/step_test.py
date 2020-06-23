@@ -1,6 +1,6 @@
 import unittest
 
-from define.sentences import StepSentences, LocationSentences, ActionSentences, ExceptSentences
+from define.constsentences import StepSentences, LocationSentences, ActionSentences, ExceptSentences
 from excel.case import StepDescription, ExceptResult
 
 
